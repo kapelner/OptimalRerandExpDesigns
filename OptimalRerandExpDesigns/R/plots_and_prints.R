@@ -33,10 +33,9 @@ plot.W_base_object = function(x, ...){
   }
   
   ggplot_obj = ggplot(data.frame(b = x$imbalance_by_w_sorted)) + 
-    aes(x = b) + 
     ggtitle(title, subtitle = subtitle) +
     xlab(xlab) +
-    geom_histogram(bins = bins)
+    geom_histogram(aes(x = b), bins = bins)
   if (!isFALSE(dots$log10)){
     ggplot_obj = ggplot_obj + scale_x_log10()
   }
@@ -120,11 +119,11 @@ plot.optimal_rerandomization_obj = function(x, ...){
     title = dots$title
   }
   if (is.null(dots$subtitle)){
-    subtitle = "optimal indicated by green line:"
-    if (x$type == "exact"){
-      subtitle = paste(subtitle, x$W_star_size_smoothed, "of", x$W_base_object$max_designs, "vectors")
+    subtitle = 
+    if (x$type == "normal"){
+      subtitle = paste("optimal indicated by green line:", x$W_star_size, "of", x$W_base_object$max_designs, "vectors")
     } else {
-      subtitle = paste(subtitle, x$W_star_size, "of", x$W_base_object$max_designs, "vectors")
+      subtitle = paste("optimal / smoothed optimal indicated by green / purple line:", x$W_star_size, "/", x$W_star_size_smoothed, "of", x$W_base_object$max_designs, "vectors")
     }
   } else {
     subtitle = dots$subtitle
@@ -147,32 +146,33 @@ plot.optimal_rerandomization_obj = function(x, ...){
   max_designs = nrow(x$all_data_from_run)
   
   if (x$type == "approx" && isTRUE(dots$advanced)){
-    plot(ggplot(x$all_data_from_run[s_min : max_designs, ]) +
+    plot(ggplot(na.omit(x$all_data_from_run[s_min : max_designs, ])) +
            ggtitle(title, subtitle = subtitle) +
            xlab(xlab) +
            ylab(ylab) +
            scale_x_log10() +
            scale_y_log10() +
            geom_line(aes(x = imbalance_by_w_sorted, y = Q_primes)) +
+		   geom_line(aes(x = imbalance_by_w_sorted, y = Q_primes_smoothed), col = "purple") +
            geom_line(aes(x = imbalance_by_w_sorted, y = imbalance_by_w_sorted), col = "blue") +
            geom_line(aes(x = imbalance_by_w_sorted, y = frob_norm_sqs), col = "red") +
            geom_line(aes(x = imbalance_by_w_sorted, y = tr_gds), col = "orange") +
-           geom_line(aes(x = imbalance_by_w_sorted, y = tr_d_sqs), col = "purple") + 
+           geom_line(aes(x = imbalance_by_w_sorted, y = tr_d_sqs), col = "grey") + 
            geom_line(aes(x = imbalance_by_w_sorted, y = r_i_sqs), col = "yellow") +			
            geom_vline(xintercept = log(x$a_star), col = "green"))
-  } else if (x$type == "exact") {
-    plot(ggplot(x$all_data_from_run[s_min : max_designs, ]) +
+  } else if (x$type == "exact" || x$type == "approx") {
+    plot(ggplot(na.omit(x$all_data_from_run[s_min : max_designs, ])) +
            ggtitle(title, subtitle = subtitle) +
            xlab(xlab) +
            ylab(ylab) +
            scale_x_log10() +
            scale_y_log10() +
            geom_line(aes(x = imbalance_by_w_sorted, y = Q_primes)) +
+		   geom_line(aes(x = imbalance_by_w_sorted, y = Q_primes_smoothed), col = "purple") +
            geom_vline(xintercept = x$a_star, col = "green") +
-           geom_line(aes(x = imbalance_by_w_sorted, y = Q_primes_smoothed), col = "purple") +
            geom_vline(xintercept = x$a_star_smoothed, col = "purple"))
   } else {
-    plot(ggplot(x$all_data_from_run[s_min : max_designs, ]) +
+    plot(ggplot(na.omit(x$all_data_from_run[s_min : max_designs, ])) +
            ggtitle(title, subtitle = subtitle) +
            xlab(xlab) +
            ylab(ylab) +

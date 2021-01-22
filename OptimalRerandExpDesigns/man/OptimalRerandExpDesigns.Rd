@@ -3,7 +3,6 @@
 \docType{package}
 \name{OptimalRerandExpDesigns}
 \alias{OptimalRerandExpDesigns}
-\alias{OptimalRerandExpDesigns-package}
 \title{Optimal Rerandomization Threshold Search for Experimental Design}
 \description{
 A tool to find the optimal rerandomization threshold in non-sequential experiments
@@ -14,6 +13,3 @@ Kapelner, A
 \author{
 Adam Kapelner \email{kapelner@qc.cuny.edu}
 }
-\keyword{Design,}
-\keyword{Experimental}
-\keyword{Rerandomization}

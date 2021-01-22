@@ -4,20 +4,25 @@
 \alias{frob_norm_sq_debiased_times_matrix}
 \title{Debiased Frobenius Norm Squared Constant Times Var-Cov matrix}
 \usage{
-frob_norm_sq_debiased_times_matrix(Sigmahat, P, s, n,
-  frob_norm_sq_bias_correction_min_samples = 30)
+frob_norm_sq_debiased_times_matrix(
+  Sigmahat,
+  A,
+  s,
+  n,
+  frob_norm_sq_bias_correction_min_samples = 10
+)
 }
 \arguments{
 \item{Sigmahat}{The var-cov matrix of interest}
 
-\item{P}{The matrix that multiplies Sigmahat}
+\item{A}{The matrix that multiplies Sigmahat}
 
 \item{s}{The number of vectors \code{Sigmahat} was generated from}
 
 \item{n}{The length of each vector}
 
 \item{frob_norm_sq_bias_correction_min_samples}{This estimate suffers from high variance when there are not enough samples. Thus, we only implement
-the correction beginning at this number of samples otherwise we return the naive estimate. Default is 30.}
+the correction beginning at this number of samples otherwise we return the naive estimate. Default is 10.}
 }
 \description{
 Compute debiased Frobenius Norm of matrix P times Sigmahat (Appendix 5.9). Note

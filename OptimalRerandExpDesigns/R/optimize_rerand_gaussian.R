@@ -9,21 +9,31 @@
 #' @param q 					The tail criterion's quantile of MSE over z's. The default is 95\%. 
 #' @param skip_search_length	In the exhaustive search, how many designs are skipped? Default is 1 for 
 #' 								full exhaustive search through all assignments provided for in \code{W_base_object}.
-#' @param binary_search			If \code{TRUE}, a binary search is employed to find the optimal threshold instead of 
-#' 								an exhaustive search. Default is \code{FALSE}.
 #' @param dot_every_x_iters		Print out a dot every this many iterations. The default is 100. Set to
 #' 								\code{NULL} for no printout.
 #' @return 						A list containing the optimal design threshold, strategy, and
 #' 								other information.
 #' 
 #' @author Adam Kapelner
+#' @examples
+#'  \dontrun{
+#'  n = 100
+#'  p = 10
+#'  X = matrix(rnorm(n * p), nrow = n, ncol = p)
+#'  X = apply(X, 2, function(xj){(xj - mean(xj)) / sd(xj)})
+#'  S = 25000
+#'  
+#'  W_base_obj = generate_W_base_and_sort(X, max_designs = S)
+#'  design = optimal_rerandomization_normality_assumed(W_base_obj, 
+#' 				skip_search_length = 10)
+#'  design
+#' 	}
 #' @export
 optimal_rerandomization_normality_assumed = function(
   W_base_object,
   estimator = "linear",
   q = 0.95,
   skip_search_length = 1,
-  binary_search = FALSE,
   dot_every_x_iters = 100){
   optimal_rerandomization_argument_checks(W_base_object, estimator, q)
   
@@ -49,27 +59,35 @@ optimal_rerandomization_normality_assumed = function(
   if (estimator == "linear"){
     w_w_T_P_w_w_T_running_sum = matrix(0, n, n)
   }
-  for (s in seq(from = 1, to = max_designs, by = skip_search_length)){
+  ss = seq(from = 1, to = max_designs, by = skip_search_length)
+  for (i in 1 : length(ss)){
+	s = ss[i]
     if (!is.null(dot_every_x_iters)){
-      if (s %% dot_every_x_iters == 0){
+      if (i %% dot_every_x_iters == 0){
         cat(".")
       }
     }
     w_s = W_base_sort[s, , drop = FALSE]
     w_s_w_s_T = t(w_s) %*% w_s
     w_w_T_running_sum = w_w_T_running_sum + w_s_w_s_T
-    Sigma_W = 1 / (s / skip_search_length) * w_w_T_running_sum
+    Sigma_W = 1 / i * w_w_T_running_sum
     if (estimator == "linear"){			
       w_w_T_P_w_w_T_running_sum = w_w_T_P_w_w_T_running_sum + w_s_w_s_T %*% P %*% w_s_w_s_T
-      D = 1 / (s / skip_search_length) * w_w_T_P_w_w_T_running_sum
+      D = 1 / i * w_w_T_P_w_w_T_running_sum
       G = I_min_P %*% Sigma_W %*% I_min_P
       eigenvalues = eigen(G + 2 / n * D)$values
-      Q_primes[s] = hall_buckley_eagleson_inverse_cdf(eigenvalues, q, n)			
+	  
+	  #sometimes the hall_buckley_eagleson method fails. I think it's due to numerical instability in the algorithm. 
+	  #We will simply skip these.
+	  tryCatch({Q_primes[s] = hall_buckley_eagleson_inverse_cdf(eigenvalues, q, n)}, error = function(e){})	
     }
-    if (Q_primes[s] < Q_star){
-      Q_star = Q_primes[s]
-      s_star = s
-    }
+	if (!is.na(Q_primes[s])){
+		if (Q_primes[s] < Q_star){
+			Q_star = Q_primes[s]
+			s_star = s
+		}		
+	}
+
   }
   cat("\n")
   

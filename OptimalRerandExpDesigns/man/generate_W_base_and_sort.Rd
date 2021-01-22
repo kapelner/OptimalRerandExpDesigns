@@ -4,8 +4,13 @@
 \alias{generate_W_base_and_sort}
 \title{Generate Base Assignments and Sorts}
 \usage{
-generate_W_base_and_sort(X, max_designs = 25000,
-  imbalance_function = "mahal_dist", r = 0, max_max_iters = 5)
+generate_W_base_and_sort(
+  X,
+  max_designs = 25000,
+  imbalance_function = "mahal_dist",
+  r = 0,
+  max_max_iters = 5
+)
 }
 \arguments{
 \item{X}{The data as an \eqn{n \times p} matrix.}
@@ -32,6 +37,18 @@ A list including all arguments plus a matrix \code{W_base_sorted}
 }
 \description{
 Generates the base vectors to be used when locating the optimal rerandomization threshold
+}
+\examples{
+ \dontrun{
+ n = 100
+ p = 10
+ X = matrix(rnorm(n * p), nrow = n, ncol = p)
+ X = apply(X, 2, function(xj){(xj - mean(xj)) / sd(xj)})
+ S = 25000
+ 
+ W_base_obj = generate_W_base_and_sort(X, max_designs = S)
+ W_base_obj
+	}
 }
 \author{
 Adam Kapelner

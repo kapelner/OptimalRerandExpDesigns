@@ -12,8 +12,8 @@
 #' @param q 					The tail criterion's quantile of MSE over z's. The default is 95\%. 
 #' @param skip_search_length	In the exhaustive search, how many designs are skipped? Default is 1 for 
 #' 								full exhaustive search through all assignments provided for in \code{W_base_object}.
-#' @param smoothing_degree  The smoothing degree passed to \code{loess}.
-#' @param smoothing_span    The smoothing span passed to \code{loess}.
+#' @param smoothing_degree  	The smoothing degree passed to \code{loess}.
+#' @param smoothing_span    	The smoothing span passed to \code{loess}.
 #' @param z_sim_fun 			This function returns vectors of numeric values of size \code{n}. No default is provided.
 #' @param N_z 					The number of times to simulate z's within each strategy.
 #' @param dot_every_x_iters		Print out a dot every this many iterations. The default is 100. Set to
@@ -22,6 +22,20 @@
 #' 								other information.
 #' 
 #' @author Adam Kapelner
+#' @examples
+#'  \dontrun{
+#'  n = 100
+#'  p = 10
+#'  X = matrix(rnorm(n * p), nrow = n, ncol = p)
+#'  X = apply(X, 2, function(xj){(xj - mean(xj)) / sd(xj)})
+#'  S = 25000
+#'  
+#'  W_base_obj = generate_W_base_and_sort(X, max_designs = S)
+#'  design = optimal_rerandomization_exact(W_base_obj, 
+#' 				z_sim_fun = function(){rnorm(n)}, 
+#' 				skip_search_length = 10)
+#'  design
+#' 	}
 #' @export
 optimal_rerandomization_exact = function(
   W_base_object,
@@ -59,19 +73,21 @@ optimal_rerandomization_exact = function(
   if (estimator == "linear"){
     w_w_T_P_w_w_T_running_sum = matrix(0, n, n)
   }
-  for (s in seq(from = 1, to = max_designs, by = skip_search_length)){
+  ss = seq(from = 1, to = max_designs, by = skip_search_length)
+  for (i in 1 : length(ss)){
+	s = ss[i]
     if (!is.null(dot_every_x_iters)){
-      if (s %% dot_every_x_iters == 0){
+      if (i %% dot_every_x_iters == 0){
         cat(".")
       }
     }
     w_s = W_base_sort[s, , drop = FALSE]
     w_s_w_s_T = t(w_s) %*% w_s
     w_w_T_running_sum = w_w_T_running_sum + w_s_w_s_T
-    Sigma_W = 1 / (s / skip_search_length) * w_w_T_running_sum
+    Sigma_W = 1 / i * w_w_T_running_sum
     if (estimator == "linear"){			
       w_w_T_P_w_w_T_running_sum = w_w_T_P_w_w_T_running_sum + w_s_w_s_T %*% P %*% w_s_w_s_T
-      D = 1 / (s / skip_search_length) * w_w_T_P_w_w_T_running_sum
+      D = 1 / i * w_w_T_P_w_w_T_running_sum
       G = I_min_P %*% Sigma_W %*% I_min_P
       
       

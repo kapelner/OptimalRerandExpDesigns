@@ -4,9 +4,17 @@
 \alias{optimal_rerandomization_exact}
 \title{Find the Optimal Rerandomization Design Exactly}
 \usage{
-optimal_rerandomization_exact(W_base_object, estimator = "linear", q = 0.95,
-  skip_search_length = 1, smoothing_degree = 1, smoothing_span = 0.1,
-  z_sim_fun, N_z = 1000, dot_every_x_iters = 100)
+optimal_rerandomization_exact(
+  W_base_object,
+  estimator = "linear",
+  q = 0.95,
+  skip_search_length = 1,
+  smoothing_degree = 1,
+  smoothing_span = 0.1,
+  z_sim_fun,
+  N_z = 1000,
+  dot_every_x_iters = 100
+)
 }
 \arguments{
 \item{W_base_object}{An object that contains the assignments to begin with sorted by}
@@ -36,6 +44,21 @@ A list containing the optimal design threshold, strategy, and
 \description{
 Finds the optimal rerandomization threshold based on a user-defined quantile
 and a function that generates the non-linear component of the response
+}
+\examples{
+ \dontrun{
+ n = 100
+ p = 10
+ X = matrix(rnorm(n * p), nrow = n, ncol = p)
+ X = apply(X, 2, function(xj){(xj - mean(xj)) / sd(xj)})
+ S = 25000
+ 
+ W_base_obj = generate_W_base_and_sort(X, max_designs = S)
+ design = optimal_rerandomization_exact(W_base_obj, 
+				z_sim_fun = function(){rnorm(n)}, 
+				skip_search_length = 10)
+ design
+	}
 }
 \author{
 Adam Kapelner

@@ -4,10 +4,20 @@
 \alias{optimal_rerandomization_tail_approx}
 \title{Find the Optimal Rerandomization Design Under the Tail and Kurtosis Approximation}
 \usage{
-optimal_rerandomization_tail_approx(W_base_object, estimator = "linear",
-  q = 0.95, skip_search_length = 1, binary_search = FALSE,
-  excess_kurtosis_z = 0, frob_norm_sq_bias_correction_min_samples = 30,
-  dot_every_x_iters = 100)
+optimal_rerandomization_tail_approx(
+  W_base_object,
+  estimator = "linear",
+  q = 0.95,
+  c_val = NULL,
+  skip_search_length = 1,
+  binary_search = FALSE,
+  excess_kurtosis_z = 0,
+  use_frob_norm_sq_unbiased_estimator = TRUE,
+  frob_norm_sq_bias_correction_min_samples = 10,
+  smoothing_degree = 1,
+  smoothing_span = 0.1,
+  dot_every_x_iters = 100
+)
 }
 \arguments{
 \item{W_base_object}{An object that contains the assignments to begin with sorted by imbalance.}
@@ -15,6 +25,8 @@ optimal_rerandomization_tail_approx(W_base_object, estimator = "linear",
 \item{estimator}{"linear" for the covariate-adjusted linear regression estimator (default).}
 
 \item{q}{The tail criterion's quantile of MSE over z's. The default is 95\%.}
+
+\item{c_val}{The c value used (see Equation 8 in the paper). The default is \code{NULL} corresponding to \code{qnorm(q)}.}
 
 \item{skip_search_length}{In the exhaustive search, how many designs are skipped? Default is 1 for 
 full exhaustive search through all assignments provided for in \code{W_base_object}.}
@@ -24,10 +36,17 @@ an exhaustive search. Default is \code{FALSE}.}
 
 \item{excess_kurtosis_z}{An estimate of the excess kurtosis in the measure on z. Default is 0.}
 
-\item{frob_norm_sq_bias_correction_min_samples}{This function requires computation of a Frobenius norm
-                                         squared of a matrix. We employ a bias corrected estimate. 
-However, this estimate suffers from high variance when there are not enough samples. Thus, we only implement
-the correction beginning at this number of vectors. Default is 30.}
+\item{use_frob_norm_sq_unbiased_estimator}{If \code{TRUE}, this would use the debiased Frobenius norm estimator
+instead of the naive. Default is \code{TRUE}.}
+
+\item{frob_norm_sq_bias_correction_min_samples}{The bias-corrected estimate suffers from high variance when there 
+are not enough samples. Thus, we only implement
+the correction beginning at this number of vectors. Default is 10 and
+this parameter is only applicable if \code{use_frob_norm_sq_unbiased_estimator} is \code{TRUE}.}
+
+\item{smoothing_degree}{The smoothing degree passed to \code{loess}.}
+
+\item{smoothing_span}{The smoothing span passed to \code{loess}.}
 
 \item{dot_every_x_iters}{Print out a dot every this many iterations. The default is 100. Set to
 \code{NULL} for no printout.}
@@ -39,6 +58,20 @@ A list containing the optimal design threshold, strategy, and
 \description{
 Finds the optimal rerandomization threshold based on a user-defined quantile
 and kurtosis based on an approximation of tail standard errors
+}
+\examples{
+ \dontrun{
+ n = 100
+ p = 10
+ X = matrix(rnorm(n * p), nrow = n, ncol = p)
+ X = apply(X, 2, function(xj){(xj - mean(xj)) / sd(xj)})
+ S = 25000
+ 
+ W_base_obj = generate_W_base_and_sort(X, max_designs = S)
+ design = optimal_rerandomization_tail_approx(W_base_obj, 
+				skip_search_length = 10)
+ design
+	}
 }
 \author{
 Adam Kapelner

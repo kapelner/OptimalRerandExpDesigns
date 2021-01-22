@@ -4,8 +4,12 @@
 \alias{frob_norm_sq_debiased}
 \title{Debiased Frobenius Norm Squared Var-Cov matrix}
 \usage{
-frob_norm_sq_debiased(Sigmahat, s, n,
-  frob_norm_sq_bias_correction_min_samples = 30)
+frob_norm_sq_debiased(
+  Sigmahat,
+  s,
+  n,
+  frob_norm_sq_bias_correction_min_samples = 10
+)
 }
 \arguments{
 \item{Sigmahat}{The var-cov matrix of interest}
@@ -15,7 +19,7 @@ frob_norm_sq_debiased(Sigmahat, s, n,
 \item{n}{The length of each vector}
 
 \item{frob_norm_sq_bias_correction_min_samples}{This estimate suffers from high variance when there are not enough samples. Thus, we only implement
-the correction beginning at this number of samples otherwise we return the naive estimate. Default is 30.}
+the correction beginning at this number of samples otherwise we return the naive estimate. Default is 10.}
 }
 \description{
 Compute debiased Frobenius Norm of matrix Sigmahat (Appendix 5.8). Note

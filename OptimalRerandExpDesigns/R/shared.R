@@ -1,42 +1,42 @@
-optimal_rerandomization_sets = function(X, 
-                                        max_designs = 25000,
-                                        objective = "mahal_dist",
-                                        estimator = "linear",
-                                        c_grid = seq(from = 1, to = 5, by = 0.5),
-                                        kappa_z_grid = seq(from = -1, to = 1, by = 0.5),
-                                        ...){
-  
-  if (estimator == "linear"){
-    all_results_a_star = array(NA, c(length(c_grid), length(kappa_z_grid)))
-    dimnames(all_results_a_star) = list(c_grid, kappa_z_grid)
-    all_results_Q_star = array(NA, c(length(c_grid), length(kappa_z_grid)))
-    dimnames(all_results_Q_star) = list(c_grid, kappa_z_grid)
-    all_results_W_star_size = array(NA, c(length(c_grid), length(kappa_z_grid)))
-    dimnames(all_results_W_star_size) = list(c_grid, kappa_z_grid)
-    for (i_c in 1 : length(c_grid)){
-      c_val = c_grid[i_c]
-      for (i_k in 1 : length(kappa_z_grid)){
-        kappa_z = kappa_z_grid[i_k]
-        
-        results = optimal_rerandomization(
-          X = X,
-          max_designs = max_designs,
-          objective = objective,
-          estimator = estimator,
-          c_val = c_val,
-          kappa_z = kappa_z
-        )
-        
-        all_results_a_star[i_c, i_k] = results$a_star
-        all_results_Q_star[i_c, i_k] = results$Q_star
-        all_results_W_star_size[i_c, i_k] = results$W_star_size
-      }
-    }
-  }
-  list(all_results_a_star = all_results_a_star, all_results_Q_star = all_results_Q_star, all_results_W_star_size = all_results_W_star_size)
-  load( "different_c_kappa.RData")
-  #save(ll, file = "different_c_kappa.RData")
-}
+#optimal_rerandomization_sets = function(X, 
+#                                        max_designs = 25000,
+#                                        objective = "mahal_dist",
+#                                        estimator = "linear",
+#                                        c_grid = seq(from = 1, to = 5, by = 0.5),
+#                                        kappa_z_grid = seq(from = -1, to = 1, by = 0.5),
+#                                        ...){
+#  
+#  if (estimator == "linear"){
+#    all_results_a_star = array(NA, c(length(c_grid), length(kappa_z_grid)))
+#    dimnames(all_results_a_star) = list(c_grid, kappa_z_grid)
+#    all_results_Q_star = array(NA, c(length(c_grid), length(kappa_z_grid)))
+#    dimnames(all_results_Q_star) = list(c_grid, kappa_z_grid)
+#    all_results_W_star_size = array(NA, c(length(c_grid), length(kappa_z_grid)))
+#    dimnames(all_results_W_star_size) = list(c_grid, kappa_z_grid)
+#    for (i_c in 1 : length(c_grid)){
+#      c_val = c_grid[i_c]
+#      for (i_k in 1 : length(kappa_z_grid)){
+#        kappa_z = kappa_z_grid[i_k]
+#        
+#        results = optimal_rerandomization(
+#          X = X,
+#          max_designs = max_designs,
+#          objective = objective,
+#          estimator = estimator,
+#          c_val = c_val,
+#          kappa_z = kappa_z
+#        )
+#        
+#        all_results_a_star[i_c, i_k] = results$a_star
+#        all_results_Q_star[i_c, i_k] = results$Q_star
+#        all_results_W_star_size[i_c, i_k] = results$W_star_size
+#      }
+#    }
+#  }
+#  list(all_results_a_star = all_results_a_star, all_results_Q_star = all_results_Q_star, all_results_W_star_size = all_results_W_star_size)
+#  load( "different_c_kappa.RData")
+#  #save(ll, file = "different_c_kappa.RData")
+#}
 
 
 
@@ -64,6 +64,17 @@ optimal_rerandomization_sets = function(X,
 #' 		
 #' 
 #' @author Adam Kapelner
+#' @examples
+#'  \dontrun{
+#'  n = 100
+#'  p = 10
+#'  X = matrix(rnorm(n * p), nrow = n, ncol = p)
+#'  X = apply(X, 2, function(xj){(xj - mean(xj)) / sd(xj)})
+#'  S = 25000
+#'  
+#'  W_base_obj = generate_W_base_and_sort(X, max_designs = S)
+#'  W_base_obj
+#' 	}
 #' @export
 generate_W_base_and_sort = function(X,
                                     max_designs = 25000,
@@ -72,13 +83,13 @@ generate_W_base_and_sort = function(X,
                                     max_max_iters = 5
 ){
   n = nrow(X)
+  p = ncol(X)
   #rewrite it as standardized
   X = apply(X, 2, function(xj){(xj - mean(xj)) / sd(xj)})
   
   W_base = complete_randomization_with_forced_balance_plus_one_min_one(n, max_designs)  
   
   if (r > 0){
-    library(GreedyExperimentalDesign)
     
     rd = initGreedyExperimentalDesignObject(X, r, wait = TRUE, objective = "mahal_dist", num_cores = 4)
     res = resultsGreedySearch(rd, max_vectors = r)
@@ -94,8 +105,7 @@ generate_W_base_and_sort = function(X,
       W_base = rbind(all_vecs, W_base)
     }
     
-    #	    all_mahal_obj = apply(W_base, 1, function(w){compute_objective_val(X, w, objective = "mahal_dist")})
-    #	    hist(all_mahal_obj_sort_log, br = 1000)
+	all_mahal_obj_sort_log = log(sort(apply(W_base, 1, function(w){compute_objective_val(X, w, objective = "mahal_dist")})))
     
     
     ##now create a representative sample
@@ -132,6 +142,7 @@ generate_W_base_and_sort = function(X,
   ll = list(
     X = X,
     n = n,
+	p = p,
     imbalance_function = imbalance_function,
     W_base_sorted = W_base[sorted_idx, ], 
     max_designs = nrow(W_base), 
@@ -181,7 +192,7 @@ tr = function(A){sum(diag(A))}
 
 #compute inverse CDF as a function of desired quantile using the hall-buckley-eagleson method
 hall_buckley_eagleson_inverse_cdf = function(eigenvalues, q, sample_size, tol = 0.001){
-  eigenvalues = eigenvalues[eigenvalues > 0] #only use non-zero eigenvalues
+  eigenvalues[eigenvalues <= 0] = .Machine$double.eps #only use non-zero eigenvalues
   if (any(eigenvalues > sample_size)){
     eigenvalues = c(sample_size) #theoretical upper limit
   }
@@ -205,3 +216,19 @@ optimal_rerandomization_argument_checks = function(W_base_object, estimator, q){
     stop("quantile must be between 0 and 1.")
   }
 }
+
+#stupidity for CRAN!!!
+utils::globalVariables(c(
+	"all_mahal_obj_sort_log", 
+	"b", 
+	"imbalance_by_w_sorted", 
+	"Q_primes", 
+	"Q_primes_smoothed",
+	"frob_norm_sqs",
+	"tr_gds",
+	"tr_d_sqs",
+	"r_i_sqs"
+))
+
+		
+

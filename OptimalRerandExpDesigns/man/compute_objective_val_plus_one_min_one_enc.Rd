@@ -6,8 +6,12 @@
 This is code duplication since this is implemented within Java. This is only to be
 run if...}
 \usage{
-compute_objective_val_plus_one_min_one_enc(X, indic_T,
-  objective = "abs_sum_diff", inv_cov_X = NULL)
+compute_objective_val_plus_one_min_one_enc(
+  X,
+  indic_T,
+  objective = "abs_sum_diff",
+  inv_cov_X = NULL
+)
 }
 \arguments{
 \item{X}{The n x p design matrix}
